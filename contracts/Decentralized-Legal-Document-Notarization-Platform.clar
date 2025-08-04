@@ -3,6 +3,8 @@
 (define-constant ERR-NOTARY-NOT-FOUND (err u102))
 (define-constant ERR-DOCUMENT-EXISTS (err u103))
 (define-constant ERR-INVALID-STATUS (err u104))
+(define-constant ERR-DOCUMENT-EXPIRED (err u105))
+(define-constant ERR-INVALID-EXPIRY (err u106))
 
 (define-data-var contract-owner principal tx-sender)
 
@@ -22,7 +24,8 @@
     notary: (optional principal),
     timestamp: uint,
     status: (string-ascii 20),
-    attestation-id: (optional uint)
+    attestation-id: (optional uint),
+    expiry-block: (optional uint)
   }
 )
 
@@ -62,7 +65,8 @@
         notary: none,
         timestamp: burn-block-height,
         status: "PENDING",
-        attestation-id: none
+        attestation-id: none,
+        expiry-block: none
       }
     ))
   )
@@ -86,10 +90,10 @@
       {
         owner: (get owner (unwrap-panic document)),
         notary: (some tx-sender),
-
         timestamp: burn-block-height,
         status: "ATTESTED",
-        attestation-id: (some new-id)
+        attestation-id: (some new-id),
+        expiry-block: (get expiry-block (unwrap-panic document))
       }
     ))
   )
@@ -109,8 +113,53 @@
   )
 )
 
+(define-public (upload-document-with-expiry (document-hash (buff 32)) (expiry-blocks uint))
+  (let ((doc-exists (get-document document-hash))
+        (expiry-block (+ burn-block-height expiry-blocks)))
+    (asserts! (is-none doc-exists) ERR-DOCUMENT-EXISTS)
+    (asserts! (> expiry-blocks u0) ERR-INVALID-EXPIRY)
+    (ok (map-set documents
+      { document-hash: document-hash }
+      {
+        owner: tx-sender,
+        notary: none,
+        timestamp: burn-block-height,
+        status: "PENDING",
+        attestation-id: none,
+        expiry-block: (some expiry-block)
+      }
+    ))
+  )
+)
+
+(define-read-only (is-document-expired (document-hash (buff 32)))
+  (let ((document (get-document document-hash)))
+    (match document
+      doc-data (match (get expiry-block doc-data)
+        expiry (>= burn-block-height expiry)
+        false
+      )
+      false
+    )
+  )
+)
+
+(define-read-only (get-document-status (document-hash (buff 32)))
+  (let ((document (get-document document-hash)))
+    (match document
+      doc-data (if (is-document-expired document-hash)
+        "EXPIRED"
+        (get status doc-data)
+      )
+      "NOT_FOUND"
+    )
+  )
+)
+
 (define-public (verify-document (document-hash (buff 32)))
   (let ((document (get-document document-hash)))
-    (ok (is-some document))
+    (asserts! (is-some document) ERR-DOCUMENT-EXISTS)
+    (asserts! (not (is-document-expired document-hash)) ERR-DOCUMENT-EXPIRED)
+    (ok true)
   )
 )
