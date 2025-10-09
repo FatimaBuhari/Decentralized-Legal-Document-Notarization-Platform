@@ -1,4 +1,4 @@
-# 📜 Decentralized Legal Document Notarization Platform
+# Decentralized Legal Document Notarization Platform
 
 A blockchain-based solution for secure, transparent, and decentralized document notarization.
 
@@ -7,6 +7,7 @@ A blockchain-based solution for secure, transparent, and decentralized document 
 - Document hash registration and timestamping
 - Professional notary registration system
 - Digital attestations via NFTs
+- Secure document ownership transfer for attested documents
 - On-chain verification
 - Notary management system
 
@@ -22,6 +23,7 @@ A blockchain-based solution for secure, transparent, and decentralized document 
 #### For Users
 - `upload-document`: Upload a document hash for notarization
 - `verify-document`: Verify a document's notarization status
+- `transfer-document-ownership`: Transfer ownership of an attested document to a new principal
 
 #### For Notaries
 - `register-notary`: Register as a legal professional

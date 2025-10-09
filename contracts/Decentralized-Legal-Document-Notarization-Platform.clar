@@ -17,7 +17,7 @@
   }
 )
 
-(define-map documents 
+(define-map documents
   { document-hash: (buff 32) }
   {
     owner: principal,
@@ -81,10 +81,10 @@
     (asserts! (is-some notary) ERR-NOT-AUTHORIZED)
     (asserts! (is-some document) ERR-DOCUMENT-EXISTS)
     (asserts! (get active (unwrap-panic notary)) ERR-NOT-AUTHORIZED)
-    
+
     (try! (nft-mint? attestation new-id tx-sender))
     (var-set attestation-nonce new-id)
-    
+
     (ok (map-set documents
       { document-hash: document-hash }
       {
@@ -103,7 +103,7 @@
   (let ((existing-notary (get-notary notary-id)))
     (asserts! (is-eq tx-sender (var-get contract-owner)) ERR-NOT-AUTHORIZED)
     (asserts! (is-some existing-notary) ERR-NOTARY-NOT-FOUND)
-    
+
     (ok (map-set notaries
       { notary-id: notary-id }
       (merge (unwrap-panic existing-notary)
@@ -175,6 +175,21 @@
       (ok (map-set documents
         { document-hash: document-hash }
         (merge doc-data { status: "REVOKED" })
+      ))
+    )
+  )
+)
+
+(define-public (transfer-document-ownership (document-hash (buff 32)) (new-owner principal))
+  (let ((document (get-document document-hash)))
+    (asserts! (is-some document) ERR-DOCUMENT-EXISTS)
+    (let ((doc-data (unwrap-panic document)))
+      (asserts! (is-eq tx-sender (get owner doc-data)) ERR-NOT-AUTHORIZED)
+      (asserts! (is-eq (get status doc-data) "ATTESTED") ERR-INVALID-STATUS)
+      (asserts! (not (is-document-expired document-hash)) ERR-DOCUMENT-EXPIRED)
+      (ok (map-set documents
+        { document-hash: document-hash }
+        (merge doc-data { owner: new-owner })
       ))
     )
   )
