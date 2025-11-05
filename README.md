@@ -10,6 +10,7 @@ A blockchain-based solution for secure, transparent, and decentralized document 
 - Secure document ownership transfer for attested documents
 - On-chain verification
 - Notary management system
+- Document expiry renewal for attested documents
 
 ## 🚀 Getting Started
 
@@ -24,6 +25,7 @@ A blockchain-based solution for secure, transparent, and decentralized document 
 - `upload-document`: Upload a document hash for notarization
 - `verify-document`: Verify a document's notarization status
 - `transfer-document-ownership`: Transfer ownership of an attested document to a new principal
+- `renew-document-expiry`: Extend the expiry period of an attested document
 
 #### For Notaries
 - `register-notary`: Register as a legal professional
@@ -80,6 +82,7 @@ This PR introduces the initial implementation of a decentralized document notari
 - NFT-based attestations
 - Document verification
 - Basic notary management
+- Document expiry renewal functionality
 
 The implementation focuses on essential functionality while maintaining security and scalability. All core features have been implemented with clean, minimal code.
 

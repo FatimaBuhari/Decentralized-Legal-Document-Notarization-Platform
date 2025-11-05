@@ -194,3 +194,22 @@
     )
   )
 )
+
+(define-public (renew-document-expiry (document-hash (buff 32)) (additional-blocks uint))
+  (let ((document (get-document document-hash)))
+    (asserts! (is-some document) ERR-DOCUMENT-EXISTS)
+    (let ((doc-data (unwrap-panic document)))
+      (asserts! (is-eq tx-sender (get owner doc-data)) ERR-NOT-AUTHORIZED)
+      (asserts! (is-eq (get status doc-data) "ATTESTED") ERR-INVALID-STATUS)
+      (asserts! (not (is-document-expired document-hash)) ERR-DOCUMENT-EXPIRED)
+      (asserts! (> additional-blocks u0) ERR-INVALID-EXPIRY)
+      (let ((current-expiry (unwrap-panic (get expiry-block doc-data)))
+            (new-expiry (+ current-expiry additional-blocks)))
+        (ok (map-set documents
+          { document-hash: document-hash }
+          (merge doc-data { expiry-block: (some new-expiry) })
+        ))
+      )
+    )
+  )
+)
